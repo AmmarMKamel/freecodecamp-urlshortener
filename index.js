@@ -4,6 +4,9 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const app = express();
 
+// Importing urlSchema as Url
+const Url = require("./urlSchema");
+
 // Define the MongoDB connection string
 const uri = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@cluster0.oev1cbu.mongodb.net/${process.env.MONGODB_DATABASE}?retryWrites=true&w=majority`;
 
