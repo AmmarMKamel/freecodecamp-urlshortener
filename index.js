@@ -68,12 +68,10 @@ app.post("/api/shorturl", async (req, res) => {
 
 	// Check if lookupResult exists
 	if (lookupResult) {
-		// Log the input URL
-		console.log(url);
 		// Create new URL entry in the database
 		const urlData = await Url.create({ url });
 		// Send response status 201 with the original and short URL
-		res.status(201).json({ original_url: url, short_url: urlData });
+		res.status(201).json({ original_url: url, short_url: urlData.id });
 	} else {
 		// Log error message if failed to resolve the hostname
 		console.error("Failed to resolve hostname:", hostname);
