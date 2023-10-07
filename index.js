@@ -7,7 +7,6 @@ const app = express();
 
 // Importing urlSchema as Url
 const Url = require("./urlSchema");
-const { doesNotMatch } = require("assert");
 
 // Define the MongoDB connection string
 const uri = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@cluster0.oev1cbu.mongodb.net/${process.env.MONGODB_DATABASE}?retryWrites=true&w=majority`;
@@ -76,7 +75,7 @@ app.post("/api/shorturl", async (req, res) => {
 		// Log error message if failed to resolve the hostname
 		console.error("Failed to resolve hostname:", hostname);
 		// Send response status 500 with error message
-		res.status(500).json({ error: "Failed to resolve hostname" });
+		return res.status(400).json({ error: "invalid url" });
 	}
 });
 
