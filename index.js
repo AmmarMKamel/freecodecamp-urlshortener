@@ -2,10 +2,12 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const dns = require("dns");
 const app = express();
 
 // Importing urlSchema as Url
 const Url = require("./urlSchema");
+const { doesNotMatch } = require("assert");
 
 // Define the MongoDB connection string
 const uri = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@cluster0.oev1cbu.mongodb.net/${process.env.MONGODB_DATABASE}?retryWrites=true&w=majority`;
@@ -34,7 +36,32 @@ app.get("/api/hello", function (req, res) {
 	res.json({ greeting: "hello API" });
 });
 
-app.post("api/shorturl", (req, res) => {});
+app.post("/api/shorturl", (req, res) => {
+	const url = req.body.url;
+	let hostname;
+
+	try {
+		hostname = new URL(url).hostname;
+	} catch (err) {
+		console.error("Invalid URL:", err);
+		return res.status(400).json({ error: "invalid url" });
+	}
+
+	dns.lookup(hostname, (err) => {
+		console.log("HERE!");
+		Url.create({ url })
+			.then((data) => {
+				console.log(data);
+				res.status(201).json({ original_url: url, short_url: data });
+			})
+			.catch((err) => {
+				console.error("Failed to insert the document:", err);
+				res.status(500).json({
+					error: "Failed to insert the document",
+				});
+			});
+	});
+});
 
 app.listen(port, function () {
 	console.log(`Listening on port ${port}`);
