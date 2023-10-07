@@ -82,6 +82,24 @@ app.post("/api/shorturl", async (req, res) => {
 	}
 });
 
+// Setup express route for "shorturl" endpoint
+app.get("/api/shorturl/:shorturl", async (req, res) => {
+	// Parse the shorturl parameter and convert it to a number
+	const id = Number(req.params.shorturl);
+
+	// Use a try catch block to handle potential errors
+	try {
+		// Attempt to find a document in the Url collection with a matching id
+		const document = await Url.findOne({ id });
+
+		// If the document is found, redirect the client to the original url
+		res.status(302).redirect(document.url);
+	} catch (err) {
+		// If an error occurs log the error message
+		console.error("Failed to retrieve the document:", err);
+	}
+});
+
 app.listen(port, function () {
 	console.log(`Listening on port ${port}`);
 });
