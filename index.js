@@ -36,31 +36,50 @@ app.get("/api/hello", function (req, res) {
 	res.json({ greeting: "hello API" });
 });
 
-app.post("/api/shorturl", (req, res) => {
+// Handle POST request to create the short URL
+app.post("/api/shorturl", async (req, res) => {
+	// Collect URL from request body
 	const url = req.body.url;
 	let hostname;
 
+	// Try block to create new URL and fetch the hostname
 	try {
 		hostname = new URL(url).hostname;
 	} catch (err) {
+		// Log error message if the URL is invalid
 		console.error("Invalid URL:", err);
+		// Send response status 400 with error message
 		return res.status(400).json({ error: "invalid url" });
 	}
 
-	dns.lookup(hostname, (err) => {
-		console.log("HERE!");
-		Url.create({ url })
-			.then((data) => {
-				console.log(data);
-				res.status(201).json({ original_url: url, short_url: data });
-			})
-			.catch((err) => {
-				console.error("Failed to insert the document:", err);
-				res.status(500).json({
-					error: "Failed to insert the document",
-				});
-			});
+	// Promise to resolve the hostname
+	const lookupResult = await new Promise((resolve, reject) => {
+		// DNS lookup for hostname
+		dns.lookup(hostname, (err, address, family) => {
+			// Reject and throw error if any issue occurred during dns lookup
+			if (err) {
+				reject(err);
+			} else {
+				// Resolve if no error
+				resolve({ address, family });
+			}
+		});
 	});
+
+	// Check if lookupResult exists
+	if (lookupResult) {
+		// Log the input URL
+		console.log(url);
+		// Create new URL entry in the database
+		const urlData = await Url.create({ url });
+		// Send response status 201 with the original and short URL
+		res.status(201).json({ original_url: url, short_url: urlData });
+	} else {
+		// Log error message if failed to resolve the hostname
+		console.error("Failed to resolve hostname:", hostname);
+		// Send response status 500 with error message
+		res.status(500).json({ error: "Failed to resolve hostname" });
+	}
 });
 
 app.listen(port, function () {
